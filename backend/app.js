@@ -35,13 +35,28 @@ server.get('/produtos/ordenados', (req, res) => {
 });
 
 
+server.get('/produtos/busca/:nome', (req, res) => {
+
+    const sql = 'SELECT * FROM PRODUTO WHERE nome LIKE ?';
+
+    const termoBusca = '%' + req.params.nome + '%';
+
+    connection.query(sql, [termoBusca], (erro, resultados) => {
+        if(erro) {
+            return res.status(500).json({ erro: erro.message});
+        }
+        res.json(resultados);
+    });
+});
+
+
 server.get('/produtos/:id', (req, res) => {
 
     const {id} = req.params;
 
     const sql = 'SELECT * FROM PRODUTO WHERE id_produto = ?';
 
-    connection.query(sql, {id}, (erro, resultados) => {
+    connection.query(sql, [id], (erro, resultados) => {
         if(erro){
             return res.status(500).json({ erro: erro.message})
         }
@@ -50,21 +65,6 @@ server.get('/produtos/:id', (req, res) => {
     });
 });
 
-
-
-server.get('/produtos/busca/:nome', (req, res) => {
-
-    const sql = 'SELECT * FROM PRODUTO WHERE nome LIKE ?';
-
-    const termoBusca = '%' + req.params.nome + '%';
-
-    connection.query(sql, {termoBusca}, (erro, resultados) => {
-        if(erro) {
-            return res.status(500).json({ erro: erro.message});
-        }
-        res.json(resultados);
-    });
-});
 
 
 server.post('/produtos' , (req, res) => {
@@ -94,9 +94,38 @@ server.post('/produtos' , (req, res) => {
     })
 })
 
+server.put('/produtos/:id', (req, res) => {
+    const {nome , cor , textura , peso , unidade_medida , aplicacao , 
+    data_validade , estoque_minimo , estoque_atual , preco_unitario , id_categoria} = req.body
+
+    const {id} = req.params
+
+    const sql = 'UPDATE PRODUTO SET nome = ?, cor = ?, textura = ?, peso = ?, unidade_medida = ?, aplicacao = ?, data_validade = ?, estoque_minimo = ?, estoque_atual = ?, preco_unitario = ?, id_categoria = ? WHERE id_produto = ?'
+
+    connection.query(sql , [nome , cor , textura , peso , unidade_medida , aplicacao ,
+        data_validade , estoque_minimo , estoque_atual , preco_unitario , id_categoria, id] , (erro) => {
+            if(erro){
+                return res.status(500).json({erro: erro.message})
+            }
+            res.json({mensagem: 'Produto atualizado com sucesso'})
+        })
+})
+
+server.delete('/produtos/:id', (req, res) => {
+    const {id} = req.params
+
+    const sql = 'DELETE FROM PRODUTO WHERE id_produto = ?'
+
+    connection.query(sql , [id] , (erro) => {
+        if(erro){
+            return res.status(500).json({erro: erro.message})
+        }
+        res.json({mensagem: 'Produto deletado com sucesso'})
+    });
+});
 
 const PORT = 3025;
 
 server.listen(PORT, () => { 
-    console.log('Servidor rodando na porta: ${PORT}');
+    console.log(`Servidor rodando na porta: ${PORT}`);
 });
